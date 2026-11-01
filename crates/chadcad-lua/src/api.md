@@ -10,6 +10,7 @@ Calls append to the timeline. A call taking a table accepts `name="..."`.
 `op` is `"Join"` (default), `"Cut"` or `"Intersect"`. `axis` is `"X"`, `"Y"` or `"Z"` (default).
 
     cad.param("width", 40)               -- create or update; value may be an expression
+    local w = cad.param("width")         -- returns the name, usable as a dimension
     cad.box{size={"width", 30, 10}, origin={0, 0, 0}, op="Join"}
     cad.cylinder{radius=5, height=20, origin={0, 0, 0}, axis="Z", op="Cut"}
     cad.cone{base_radius=5, top_radius=2, height=10, origin=..., axis=..., op=...}

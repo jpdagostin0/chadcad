@@ -1,7 +1,9 @@
 //! The ChadCAD desktop application: Bevy renders, egui draws the interface.
 //!
 //! `chadcad [file.chad]` opens a document. Setting `CHADCAD_SCREENSHOT=out.png`
-//! saves one window capture and exits, which is how the UI is checked headlessly.
+//! saves one window capture and exits, after `CHADCAD_SCREENSHOT_DELAY` seconds
+//! (default 2), which is how the UI is checked without a person at the screen.
+//! `CHADCAD_SELECT=name` starts with that feature selected.
 
 mod editor;
 mod studio;
@@ -25,6 +27,10 @@ fn main() {
     let mut studio = Studio::new(Document::default(), None);
     if let Some(path) = path {
         studio.open_path(path);
+    }
+    if let Ok(name) = std::env::var("CHADCAD_SELECT") {
+        let id = studio.doc.features.iter().find(|f| f.name == name).map(|f| f.id);
+        studio.select(id);
     }
     let shot = std::env::var_os("CHADCAD_SCREENSHOT").map(PathBuf::from);
 
@@ -63,13 +69,15 @@ fn main() {
             .chain(),
     );
     if let Some(path) = shot {
-        app.insert_resource(ShotTo(path)).add_systems(Update, take_screenshot);
+        let delay = std::env::var("CHADCAD_SCREENSHOT_DELAY").ok();
+        let delay = delay.and_then(|d| d.parse().ok()).unwrap_or(2.);
+        app.insert_resource(ShotTo(path, delay)).add_systems(Update, take_screenshot);
     }
     app.run();
 }
 
 #[derive(Resource)]
-struct ShotTo(PathBuf);
+struct ShotTo(PathBuf, f32);
 
 /// Waits for the build to land and the UI to settle, captures, then exits.
 fn take_screenshot(
@@ -86,13 +94,13 @@ fn take_screenshot(
         return;
     }
     let since = *ready_since.get_or_insert(now);
-    if now - since < 2. {
+    if now - since < shot.1 {
         return;
     }
     if *taken == 0 {
         commands.spawn(Screenshot::primary_window()).observe(save_to_disk(shot.0.clone()));
         *taken = 1;
-    } else if now - since > 4. {
+    } else if now - since > shot.1 + 2. {
         exit.write(AppExit::Success);
     }
 }

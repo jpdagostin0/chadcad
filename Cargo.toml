@@ -7,7 +7,6 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.90"
 license = "Apache-2.0"
-repository = "https://github.com/jpdagostino/chadcad"
 
 [workspace.dependencies]
 ogeom = "=0.13.1"

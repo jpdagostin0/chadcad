@@ -136,7 +136,7 @@ fn tuple(ui: &mut Ui, tr: &I18n, key: &str, items: &mut [Value], commit: &mut bo
     ui.horizontal(|ui| {
         ui.label(label(tr, key));
         for item in items {
-            expression(ui, item, 56., commit);
+            expression(ui, item, 84., commit);
         }
     });
 }
@@ -225,7 +225,7 @@ fn list(ui: &mut Ui, tr: &I18n, key: &str, items: &mut Vec<Value>, commit: &mut 
                     Value::Array(pair) => {
                         ui.horizontal(|ui| {
                             for coordinate in pair {
-                                expression(ui, coordinate, 56., commit);
+                                expression(ui, coordinate, 84., commit);
                             }
                         });
                     }

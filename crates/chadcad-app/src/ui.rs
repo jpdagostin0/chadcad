@@ -207,7 +207,7 @@ fn parameters(ui: &mut Ui, studio: &mut Studio, tr: &Arc<I18n>) {
     egui::Grid::new("parameters").num_columns(4).striped(true).show(ui, |ui| {
         for (i, (name, expr)) in studio.param_drafts.iter_mut().enumerate() {
             ui.label(name.as_str());
-            let edit = ui.add(TextEdit::singleline(expr).desired_width(130.));
+            let edit = ui.add_sized([130., 20.], TextEdit::singleline(expr));
             if edit.lost_focus() {
                 commit = Some(i);
             }

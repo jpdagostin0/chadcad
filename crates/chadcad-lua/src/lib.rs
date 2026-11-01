@@ -283,19 +283,21 @@ fn install_document_api(
     }
     {
         let doc = doc.clone();
-        let f = lua.create_function(move |_, (name, expr): (String, Value)| {
+        let f = lua.create_function(move |_, (name, expr): (String, Option<Value>)| {
+            let mut doc = doc.lock().map_err(|_| LuaError::runtime("document poisoned"))?;
             let expr = match expr {
-                Value::String(s) => Expr(s.to_str()?.to_owned()),
-                Value::Integer(i) => Expr(i.to_string()),
-                Value::Number(n) => Expr::from(n),
-                other => {
+                None if doc.parameters.iter().any(|p| p.name == name) => return Ok(name),
+                None => return Err(LuaError::runtime(format!("no parameter named `{name}`"))),
+                Some(Value::String(s)) => Expr(s.to_str()?.to_owned()),
+                Some(Value::Integer(i)) => Expr(i.to_string()),
+                Some(Value::Number(n)) => Expr::from(n),
+                Some(other) => {
                     let got = other.type_name();
                     return Err(LuaError::runtime(format!("param wants a value, got {got}")));
                 }
             };
-            let mut doc = doc.lock().map_err(|_| LuaError::runtime("document poisoned"))?;
             doc.set_parameter(&name, expr);
-            Ok(())
+            Ok(name)
         })?;
         cad.set("param", f)?;
     }
@@ -431,6 +433,15 @@ mod tests {
         assert_eq!(doc.features[0].name, "Base");
         assert_eq!(doc.features[1].kind.tag(), "Cylinder");
         assert_eq!(doc.parameters[0].expr.0, "30");
+    }
+
+    #[test]
+    fn param_returns_its_name_for_use_as_a_dimension() {
+        let src = "local w = cad.param('w', 5)
+cad.box{size={w, cad.param('w'), 1}}";
+        let out = run_document(src, &Document::default());
+        assert_eq!(out.error, None);
+        assert!(run_document("cad.param('nope')", &Document::default()).error.is_some());
     }
 
     #[test]

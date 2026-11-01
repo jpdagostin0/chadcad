@@ -1,0 +1,15 @@
+ChadCAD
+Copyright 2026 JP D'Agostino
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This product depends on ogeom (https://github.com/gilbertorconde/ogeom-rs),
+which is licensed under the GNU Lesser General Public License, version 2.1 only,
+and is not covered by the Apache License. All of its crates (ogeom and ogeom-*)
+are used through crates/chadcad-kernel. Binaries that include ogeom must be
+distributed in compliance with the LGPL-2.1.
+
+Other dependencies are under permissive licenses (MIT, Apache-2.0, BSD, Zlib,
+ISC, Unicode-3.0 and similar). egui's bundled fonts are under the OFL-1.1 and
+the Ubuntu Font Licence. Where a dependency offers a choice, the permissive
+option is taken. Lua is MIT licensed and compiled into the binary.
