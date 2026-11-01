@@ -3,7 +3,8 @@
 //! `chadcad [file.chad]` opens a document. Setting `CHADCAD_SCREENSHOT=out.png`
 //! saves one window capture and exits, after `CHADCAD_SCREENSHOT_DELAY` seconds
 //! (default 2), which is how the UI is checked without a person at the screen.
-//! `CHADCAD_SELECT=name` starts with that feature selected.
+//! `CHADCAD_SELECT=name` starts with that feature selected, and `CHADCAD_CLICKS=x,y;x,y`
+//! replays clicks first.
 
 mod editor;
 mod studio;
@@ -13,10 +14,12 @@ mod viewport;
 use std::path::PathBuf;
 use std::time::Duration;
 
+use bevy::input::ButtonState;
+use bevy::input::mouse::MouseButtonInput;
 use bevy::log::LogPlugin;
 use bevy::prelude::*;
 use bevy::render::view::screenshot::{Screenshot, save_to_disk};
-use bevy::window::WindowResolution;
+use bevy::window::{CursorMoved, PrimaryWindow, WindowEvent, WindowResolution};
 use bevy::winit::{UpdateMode, WinitSettings};
 use bevy_egui::{EguiPlugin, EguiPrimaryContextPass};
 use chadcad_model::Document;
@@ -72,8 +75,55 @@ fn main() {
         let delay = std::env::var("CHADCAD_SCREENSHOT_DELAY").ok();
         let delay = delay.and_then(|d| d.parse().ok()).unwrap_or(2.);
         app.insert_resource(ShotTo(path, delay)).add_systems(Update, take_screenshot);
+        if let Ok(clicks) = std::env::var("CHADCAD_CLICKS") {
+            app.insert_resource(Clicks(parse_clicks(&clicks))).add_systems(Update, replay_clicks);
+        }
     }
     app.run();
+}
+
+/// Pointer clicks to replay, in logical pixels: `x,y;x,y`.
+#[derive(Resource)]
+struct Clicks(Vec<Vec2>);
+
+fn parse_clicks(text: &str) -> Vec<Vec2> {
+    let pair = |p: &str| {
+        let (x, y) = p.split_once(',')?;
+        Some(Vec2::new(x.trim().parse().ok()?, y.trim().parse().ok()?))
+    };
+    text.split(';').filter_map(pair).collect()
+}
+
+/// Feeds clicks into `WindowEvent`, the same stream winit writes and egui reads, so a
+/// capture can show what the interface does when used. One click per 40 frames.
+fn replay_clicks(
+    clicks: Res<Clicks>,
+    window: Single<Entity, With<PrimaryWindow>>,
+    studio: Res<Studio>,
+    mut frame: Local<usize>,
+    mut events: MessageWriter<WindowEvent>,
+) {
+    if studio.building {
+        return;
+    }
+    *frame += 1;
+    let (index, phase) = (*frame / 40, *frame % 40);
+    let Some(position) = clicks.0.get(index) else { return };
+    let window = *window;
+    let button = |state| MouseButtonInput { button: MouseButton::Left, state, window };
+    match phase {
+        5 => {
+            let cursor = CursorMoved { window, position: *position, delta: None };
+            events.write(WindowEvent::CursorMoved(cursor));
+        }
+        10 => {
+            events.write(WindowEvent::MouseButtonInput(button(ButtonState::Pressed)));
+        }
+        13 => {
+            events.write(WindowEvent::MouseButtonInput(button(ButtonState::Released)));
+        }
+        _ => {}
+    }
 }
 
 #[derive(Resource)]
