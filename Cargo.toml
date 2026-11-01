@@ -1,0 +1,26 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "Apache-2.0"
+repository = "https://github.com/jpdagostino/chadcad"
+
+[workspace.dependencies]
+ogeom = "=0.13.1"
+
+# Keep target/ small: no debuginfo, no incremental caches.
+[profile.dev]
+debug = false
+incremental = false
+
+# The kernel is unusably slow unoptimised.
+[profile.dev.package."*"]
+opt-level = 2
+
+[profile.release]
+opt-level = 3
+strip = true
