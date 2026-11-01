@@ -225,6 +225,9 @@ pub enum FeatureKind {
         source: String,
         #[serde(default)]
         op: Combine,
+        /// The script's result is the new whole body, built from `body` itself.
+        #[serde(default)]
+        replace: bool,
     },
 }
 

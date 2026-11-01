@@ -64,7 +64,10 @@ struct Solid {
 }
 
 impl Solid {
-    fn with(&self, op: impl FnOnce(&mut Bench) -> chadcad_kernel::Result<Handle>) -> mlua::Result<Self> {
+    fn with(
+        &self,
+        op: impl FnOnce(&mut Bench) -> chadcad_kernel::Result<Handle>,
+    ) -> mlua::Result<Self> {
         let mut bench = self.bench.lock().map_err(|_| LuaError::runtime("kernel poisoned"))?;
         Ok(Self { bench: self.bench.clone(), handle: kernel(op(&mut bench))? })
     }
@@ -111,7 +114,9 @@ impl UserData for Solid {
         m.add_method("fuse", |_, s, o: Self| s.with(|b| b.fuse(&s.handle, &o.handle)));
         m.add_method("cut", |_, s, o: Self| s.with(|b| b.cut(&s.handle, &o.handle)));
         m.add_method("common", |_, s, o: Self| s.with(|b| b.common(&s.handle, &o.handle)));
-        m.add_meta_method(MetaMethod::Add, |_, s, o: Self| s.with(|b| b.fuse(&s.handle, &o.handle)));
+        m.add_meta_method(MetaMethod::Add, |_, s, o: Self| {
+            s.with(|b| b.fuse(&s.handle, &o.handle))
+        });
         m.add_meta_method(MetaMethod::Sub, |_, s, o: Self| s.with(|b| b.cut(&s.handle, &o.handle)));
         m.add_meta_method(MetaMethod::Mul, |_, s, o: Self| {
             s.with(|b| b.common(&s.handle, &o.handle))
@@ -151,7 +156,8 @@ fn install_constructors(lua: &Lua, bench: &SharedBench) -> mlua::Result<()> {
                 $name,
                 lua.create_function(move |_, args: $args| {
                     let handle = {
-                        let mut b = bench.lock().map_err(|_| LuaError::runtime("kernel poisoned"))?;
+                        let mut b =
+                            bench.lock().map_err(|_| LuaError::runtime("kernel poisoned"))?;
                         kernel($make(&mut *b, args))?
                     };
                     Ok(Solid { bench: bench.clone(), handle })
@@ -160,12 +166,7 @@ fn install_constructors(lua: &Lua, bench: &SharedBench) -> mlua::Result<()> {
         }};
     }
     ctor!("box", (f64, f64, f64), |b: &mut Bench, (x, y, z)| b.cuboid([0.; 3], [x, y, z]));
-    ctor!("cylinder", (f64, f64), |b: &mut Bench, (r, h)| b.cylinder(
-        [0.; 3],
-        [0., 0., 1.],
-        r,
-        h
-    ));
+    ctor!("cylinder", (f64, f64), |b: &mut Bench, (r, h)| b.cylinder([0.; 3], [0., 0., 1.], r, h));
     ctor!("cone", (f64, f64, f64), |b: &mut Bench, (r1, r2, h)| b.cone(
         [0.; 3],
         [0., 0., 1.],
@@ -266,7 +267,11 @@ fn feature_id(doc: &Document, name: &str) -> mlua::Result<u64> {
         .ok_or_else(|| LuaError::runtime(format!("no feature named `{name}`")))
 }
 
-fn install_document_api(lua: &Lua, doc: &Arc<Mutex<Document>>, log: &Arc<Mutex<String>>) -> mlua::Result<()> {
+fn install_document_api(
+    lua: &Lua,
+    doc: &Arc<Mutex<Document>>,
+    log: &Arc<Mutex<String>>,
+) -> mlua::Result<()> {
     let cad = lua.create_table()?;
     let lock = |d: &'_ Arc<Mutex<Document>>| {
         d.lock().map(|g| g.clone()).map_err(|_| LuaError::runtime("document poisoned"))
@@ -367,11 +372,9 @@ pub fn run_document(source: &str, doc: &Document) -> ScriptOutcome {
     });
     let output = log.lock().map(|l| l.clone()).unwrap_or_default();
     match result {
-        Ok(()) => ScriptOutcome {
-            document: shared.lock().ok().map(|d| d.clone()),
-            output,
-            error: None,
-        },
+        Ok(()) => {
+            ScriptOutcome { document: shared.lock().ok().map(|d| d.clone()), output, error: None }
+        }
         Err(error) => ScriptOutcome { document: None, output, error: Some(error) },
     }
 }

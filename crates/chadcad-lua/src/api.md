@@ -25,7 +25,7 @@ Calls append to the timeline. A call taking a table accepts `name="..."`.
     cad.mirror{normal="X", origin=..., merge=true}
     cad.linear_pattern{count=4, spacing=20, direction={1, 0, 0}}
     cad.polar_pattern{count=6, angle=360, axis="Z", origin=...}
-    cad.script{source="return box(1, 2, 3)", op=...}
+    cad.script{source="return box(1, 2, 3)", op=..., replace=false}
     cad.remove(name)   cad.suppress(name, true)   cad.rollback(n or nil)
     cad.features()     -- list of feature names
 
@@ -47,7 +47,8 @@ should follow. If an edit fails to build, the feature reports an error in the ti
 ## Script features
 
 A `cad.script` source returns a solid. It sees `params.NAME` and, after the first
-feature, `body`. It has no access to `cad`.
+feature, `body`. It has no access to `cad`. The returned solid combines with the body
+through `op`, unless `replace=true`, which makes it the new body outright.
 
     box(x, y, z)   cylinder(r, h)   cone(r1, r2, h)   sphere(r)   torus(R, r)
     prism({{x, y}, ...}, h)

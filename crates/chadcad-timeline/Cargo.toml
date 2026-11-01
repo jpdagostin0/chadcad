@@ -1,0 +1,12 @@
+[package]
+name = "chadcad-timeline"
+description = "Incremental Salsa evaluation of the ChadCAD feature timeline"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+chadcad-kernel = { path = "../chadcad-kernel" }
+chadcad-lua = { path = "../chadcad-lua" }
+chadcad-model = { path = "../chadcad-model" }
+salsa.workspace = true
