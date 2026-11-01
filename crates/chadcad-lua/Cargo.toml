@@ -1,0 +1,13 @@
+[package]
+name = "chadcad-lua"
+description = "Sandboxed Lua scripting for ChadCAD"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+chadcad-kernel = { path = "../chadcad-kernel" }
+chadcad-model = { path = "../chadcad-model" }
+mlua.workspace = true
+serde.workspace = true
+serde_json.workspace = true
