@@ -355,6 +355,48 @@ impl Engine {
     }
 }
 
+/// A plain-language build report, for the AI assistant and the command line.
+pub fn describe(document: &Document, result: &BuildResult) -> String {
+    let mut report = String::new();
+    match result.properties {
+        Some(p) => {
+            let size: [f64; 3] = std::array::from_fn(|i| p.bbox_max[i] - p.bbox_min[i]);
+            report.push_str(&format!(
+                "built {} features: volume {:.3} mm3, area {:.3} mm2, size {:.3} x {:.3} x {:.3} mm
+",
+                document.features.len(),
+                p.volume,
+                p.area,
+                size[0],
+                size[1],
+                size[2],
+            ));
+        }
+        None => report.push_str(
+            "no solid yet
+",
+        ),
+    }
+    for feature in &document.features {
+        if let Some(error) = result.errors.get(&feature.id) {
+            report.push_str(&format!(
+                "error in {}: {error}
+",
+                feature.name
+            ));
+        }
+    }
+    for (name, value) in &result.parameters {
+        if let Err(error) = value {
+            report.push_str(&format!(
+                "error in parameter {name}: {error}
+"
+            ));
+        }
+    }
+    report
+}
+
 /// Builds `document` once and writes `format`, for tools that need no live engine.
 pub fn export_document(document: &Document, format: Format, chord: f64) -> Result<Vec<u8>, String> {
     let mut engine = Engine::new();

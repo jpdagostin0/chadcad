@@ -238,19 +238,28 @@ impl Bench {
         Ok(Handle(built.map_err(kerr)?.shape))
     }
 
+    /// Merges faces a boolean left split on one surface, so a later fillet sees
+    /// one wall rather than a seam it cannot blend.
+    fn refined(&mut self, built: ogeom::core::OgeomResult<ogeom::algo::Built>) -> Result<Handle> {
+        let shape = built.map_err(kerr)?.shape;
+        let (unified, _) =
+            ogeom::heal::unify_same_domain(&mut self.model, &shape, TOL).map_err(kerr)?;
+        Ok(Handle(unified.shape))
+    }
+
     pub fn fuse(&mut self, a: &Handle, b: &Handle) -> Result<Handle> {
         let built = ogeom::boolean::fuse(&mut self.model, &a.0, &b.0, TOL);
-        Ok(Handle(built.map_err(kerr)?.shape))
+        self.refined(built)
     }
 
     pub fn cut(&mut self, a: &Handle, b: &Handle) -> Result<Handle> {
         let built = ogeom::boolean::cut(&mut self.model, &a.0, &b.0, TOL);
-        Ok(Handle(built.map_err(kerr)?.shape))
+        self.refined(built)
     }
 
     pub fn common(&mut self, a: &Handle, b: &Handle) -> Result<Handle> {
         let built = ogeom::boolean::common(&mut self.model, &a.0, &b.0, TOL);
-        Ok(Handle(built.map_err(kerr)?.shape))
+        self.refined(built)
     }
 
     pub fn fillet(&mut self, solid: &Handle, sel: &EdgeSelector, radius: f64) -> Result<Handle> {

@@ -22,6 +22,26 @@ fn boolean_volume_is_exact() {
 }
 
 #[test]
+fn fuse_merges_coplanar_faces_so_fillets_work() {
+    let mut b = Bench::new();
+    let base = b.cuboid([0., 0., 0.], [20., 20., 5.]).unwrap();
+    let wall = b.cuboid([0., 0., 0.], [20., 5., 20.]).unwrap();
+    let joined = b.fuse(&base, &wall).unwrap();
+    assert_eq!(b.faces(&joined).unwrap().len(), 8, "an L has eight faces");
+    assert!(b.check(&joined).unwrap().is_empty());
+    let rounded = b.fillet(&joined, &EdgeSelector::Parallel(2), 2.).unwrap();
+    assert!(b.properties(&rounded).unwrap().volume < b.properties(&joined).unwrap().volume);
+}
+
+#[test]
+fn selectors_skip_the_seams_of_bored_holes() {
+    let (mut b, s) = plate();
+    let before = b.properties(&s).unwrap().volume;
+    let rounded = b.fillet(&s, &EdgeSelector::Parallel(2), 2.).unwrap();
+    assert!(b.properties(&rounded).unwrap().volume < before);
+}
+
+#[test]
 fn profile_with_hole_extrudes() {
     let mut b = Bench::new();
     let outer = Loop::Polygon(vec![[0., 0.], [20., 0.], [20., 10.], [0., 10.]]);

@@ -1,6 +1,8 @@
 //! Geometric selectors. Features name edges and faces by where they are rather
 //! than by id, so a reference survives the renumbering a parameter edit causes.
 
+use std::collections::{HashMap, HashSet};
+
 use ogeom::geom::Curve3d as _;
 use ogeom::topo::{Shape, ShapeType, explore_unique};
 use serde::{Deserialize, Serialize};
@@ -71,8 +73,20 @@ fn dist2(a: Vec3, b: Vec3) -> f64 {
 
 impl Bench {
     fn edge_table(&self, solid: &Handle) -> Result<Vec<(Shape, EdgeInfo)>> {
+        // A surface's seam belongs to one face only: it is a parametric artefact,
+        // not a corner, and blending it is meaningless.
+        let mut owners: HashMap<_, HashSet<usize>> = HashMap::new();
+        let faces = explore_unique(&self.model, &solid.0, ShapeType::Face).map_err(kerr)?;
+        for (i, face) in faces.iter().enumerate() {
+            for edge in explore_unique(&self.model, face, ShapeType::Edge).map_err(kerr)? {
+                owners.entry(edge.node()).or_default().insert(i);
+            }
+        }
         let mut out = Vec::new();
         for edge in explore_unique(&self.model, &solid.0, ShapeType::Edge).map_err(kerr)? {
+            if owners.get(&edge.node()).is_some_and(|faces| faces.len() < 2) {
+                continue;
+            }
             let Some((curve, (lo, hi))) =
                 ogeom::algo::placed_edge_curve(&self.model, &edge, TOL).map_err(kerr)?
             else {

@@ -1,0 +1,22 @@
+[package]
+name = "chadcad-app"
+description = "ChadCAD desktop application"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "chadcad"
+path = "src/main.rs"
+
+[dependencies]
+bevy = { version = "0.20", default-features = false, features = ["std", "bevy_winit", "multi_threaded", "x11", "wayland", "bevy_render", "bevy_core_pipeline", "bevy_pbr", "bevy_gizmos_render", "bevy_anti_alias", "bevy_window", "bevy_asset", "bevy_log", "bevy_light", "bevy_camera", "bevy_mesh", "bevy_color", "bevy_shader", "bevy_material", "bevy_image", "bevy_gizmos", "tonemapping_luts", "ktx2", "zstd_rust", "async_executor", "png", "bevy_picking"] }
+bevy_egui = "0.43"
+chadcad-ai = { path = "../chadcad-ai" }
+chadcad-i18n = { path = "../chadcad-i18n" }
+chadcad-kernel = { path = "../chadcad-kernel" }
+chadcad-lua = { path = "../chadcad-lua" }
+chadcad-model = { path = "../chadcad-model" }
+chadcad-timeline = { path = "../chadcad-timeline" }
+rfd = "0.17"
+serde_json.workspace = true

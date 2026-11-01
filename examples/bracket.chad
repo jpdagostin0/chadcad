@@ -1,0 +1,197 @@
+{
+  "name": "bracket",
+  "parameters": [
+    {
+      "name": "width",
+      "expr": "60"
+    },
+    {
+      "name": "depth",
+      "expr": "40"
+    },
+    {
+      "name": "thickness",
+      "expr": "6"
+    },
+    {
+      "name": "height",
+      "expr": "35"
+    },
+    {
+      "name": "hole",
+      "expr": "3.5"
+    },
+    {
+      "name": "inset",
+      "expr": "thickness + hole * 2"
+    },
+    {
+      "name": "gusset",
+      "expr": "height * 0.6"
+    }
+  ],
+  "features": [
+    {
+      "id": 1,
+      "name": "Base",
+      "suppressed": false,
+      "kind": {
+        "Box": {
+          "origin": [
+            "0",
+            "0",
+            "0"
+          ],
+          "size": [
+            "width",
+            "depth",
+            "thickness"
+          ],
+          "op": "Join"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Upright",
+      "suppressed": false,
+      "kind": {
+        "Box": {
+          "origin": [
+            "0",
+            "0",
+            "0"
+          ],
+          "size": [
+            "width",
+            "thickness",
+            "height"
+          ],
+          "op": "Join"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Gusset",
+      "suppressed": false,
+      "kind": {
+        "Extrude": {
+          "sketch": {
+            "plane": "YZ",
+            "offset": "width / 2 - thickness / 2",
+            "outer": {
+              "Polygon": {
+                "points": [
+                  [
+                    "thickness",
+                    "thickness"
+                  ],
+                  [
+                    "thickness + gusset",
+                    "thickness"
+                  ],
+                  [
+                    "thickness",
+                    "thickness + gusset"
+                  ]
+                ]
+              }
+            },
+            "holes": []
+          },
+          "distance": "thickness",
+          "taper": "0",
+          "op": "Join"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "name": "BoreLeft",
+      "suppressed": false,
+      "kind": {
+        "Cylinder": {
+          "origin": [
+            "inset",
+            "depth - inset",
+            "-1"
+          ],
+          "axis": "Z",
+          "radius": "hole",
+          "height": "thickness + 2",
+          "op": "Cut"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "name": "BoreRight",
+      "suppressed": false,
+      "kind": {
+        "Cylinder": {
+          "origin": [
+            "width - inset",
+            "depth - inset",
+            "-1"
+          ],
+          "axis": "Z",
+          "radius": "hole",
+          "height": "thickness + 2",
+          "op": "Cut"
+        }
+      }
+    },
+    {
+      "id": 6,
+      "name": "SlotLeft",
+      "suppressed": false,
+      "kind": {
+        "Cylinder": {
+          "origin": [
+            "inset",
+            "-1",
+            "height - inset"
+          ],
+          "axis": "Y",
+          "radius": "hole",
+          "height": "thickness + 2",
+          "op": "Cut"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "name": "SlotRight",
+      "suppressed": false,
+      "kind": {
+        "Cylinder": {
+          "origin": [
+            "width - inset",
+            "-1",
+            "height - inset"
+          ],
+          "axis": "Y",
+          "radius": "hole",
+          "height": "thickness + 2",
+          "op": "Cut"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "name": "Rounded",
+      "suppressed": false,
+      "kind": {
+        "Fillet": {
+          "edges": {
+            "Parallel": 2
+          },
+          "radius": "3"
+        }
+      }
+    }
+  ],
+  "rollback": null,
+  "next_id": 9
+}

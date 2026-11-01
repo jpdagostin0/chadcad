@@ -1,0 +1,13 @@
+[package]
+name = "chadcad-cli"
+description = "Headless ChadCAD tools"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+chadcad-ai = { path = "../chadcad-ai" }
+chadcad-kernel = { path = "../chadcad-kernel" }
+chadcad-lua = { path = "../chadcad-lua" }
+chadcad-model = { path = "../chadcad-model" }
+chadcad-timeline = { path = "../chadcad-timeline" }
